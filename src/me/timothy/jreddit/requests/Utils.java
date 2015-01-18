@@ -44,6 +44,8 @@ public class Utils {
     public static JSONObject post(String apiParams, URL url, String cookie)
             throws IOException, ParseException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
         connection.setDoOutput(true);
         connection.setUseCaches(false);
         connection.setRequestMethod("POST");
@@ -118,6 +120,8 @@ public class Utils {
     		url = new URL(url.toString() + "?" + apiParams);
     	}
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
         connection.setDoOutput(true);
         connection.setUseCaches(false);
         connection.setRequestMethod("GET");
