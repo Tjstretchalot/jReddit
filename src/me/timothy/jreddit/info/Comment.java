@@ -62,6 +62,14 @@ public class Comment extends VotableAndCreated {
 		return (String) data.get("link_title");
 	}
 	
+	public String linkURL() {
+		return (String) data.get("link_url");
+	}
+	
+	public String linkAuthor() {
+		return (String) data.get("link_author");
+	}
+	
 	public Integer numReports() {
 		return (Integer) data.get("num_reports");
 	}
