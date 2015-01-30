@@ -188,6 +188,26 @@ public class RedditUtils {
 
 		return listing.getChild(0);
 	}
+
+	public static Listing getThings(String[] asStr, User user) throws IOException, ParseException {
+		StringBuilder fullnames = new StringBuilder();
+		boolean first = true;
+		for(int i = 0; i < asStr.length; i++) {
+			if(!first)
+				fullnames.append(',');
+			else
+				first = false;
+			fullnames.append(asStr[i]);
+		}
+		Request req = requestHandler.getShell("info").createRequest(
+				user.getCookie(),
+				"id=" + fullnames
+			);
+		JSONObject jObject = (JSONObject) req.doRequest();
+		Listing listing = new Listing(jObject);
+		user.setModhash(listing.modhash());
+		return listing;
+	}
 	
 	/**
 	 * Sleeps for some period of time, in seconds, and

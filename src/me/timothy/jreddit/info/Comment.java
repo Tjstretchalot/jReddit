@@ -66,8 +66,18 @@ public class Comment extends VotableAndCreated {
 		return (String) data.get("link_url");
 	}
 	
+	@SuppressWarnings("unchecked")
+	public void linkURL(String str) {
+		data.put("link_url", str);
+	}
+	
 	public String linkAuthor() {
 		return (String) data.get("link_author");
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void linkAuthor(String str) {
+		data.put("link_author", str);
 	}
 	
 	public Integer numReports() {
