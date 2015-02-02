@@ -100,6 +100,31 @@ public class RedditUtils {
 		
 		return new CommentResponse((JSONObject) req.doRequest());
 	}
+
+
+	public static Errorable sendPersonalMessage(User user, String to, String title, String message) throws IOException, ParseException {
+		Request req = requestHandler.getShell("compose").createRequest(
+				user.getCookie(),
+				"api_type=json",
+				"subject="+title,
+				"text="+message,
+				"to="+to, 
+				"uh="+user.getModhash()
+				);
+		
+		final JSONObject result = (JSONObject) req.doRequest();
+		
+		return new Errorable() {
+
+			@Override
+			public List<?> getErrors() {
+				JSONObject json = (JSONObject) result.get("json");
+				
+				return (JSONArray) json.get("errors");
+			}
+			
+		};
+	}
 	
 	public static Errorable edit(User user, String thingFullname, String text) throws IOException, ParseException {
 		Request req = requestHandler.getShell("editusertext").createRequest(
@@ -165,6 +190,20 @@ public class RedditUtils {
 		Listing res = new Listing((JSONObject) req.doRequest("sub=" + sub));
 		user.setModhash(res.modhash());
 		return res;
+	}
+
+	public static Listing getUnreadMessages(User user) throws IOException, ParseException {
+		Request req = requestHandler.getShell("message_unread").createRequest(user.getCookie());
+		Listing res = new Listing((JSONObject) req.doRequest());
+		user.setModhash(res.modhash());
+		return res;
+	}
+
+	public static void markAsRead(User user, String ids) throws IOException, ParseException {
+		Request req = requestHandler.getShell("read_message").createRequest(user.getCookie(),
+				"id="+ids, "uh="+user.getModhash());
+		
+		req.doRequest();
 	}
 	
 	/**
