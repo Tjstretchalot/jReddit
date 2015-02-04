@@ -29,6 +29,10 @@ public class RequestShell {
 		for(String str : params) {
 			String[] spl = str.split("=");
 			
+			if(spl.length < 2) {
+				System.err.println("Odd parameter: " + str);
+			}
+			
 			parameters.put(spl[0], spl[1]);
 		}
 		return new Request(url, parameters, cookie, requestType);
