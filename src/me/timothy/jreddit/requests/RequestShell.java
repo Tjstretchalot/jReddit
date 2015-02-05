@@ -31,6 +31,7 @@ public class RequestShell {
 			
 			if(spl.length < 2) {
 				System.err.println("Odd parameter: " + str);
+				continue;
 			}
 			
 			parameters.put(spl[0], spl[1]);

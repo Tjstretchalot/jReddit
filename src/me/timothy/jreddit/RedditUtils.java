@@ -106,8 +106,8 @@ public class RedditUtils {
 		Request req = requestHandler.getShell("compose").createRequest(
 				user.getCookie(),
 				"api_type=json",
-				"subject="+title,
-				"text="+message,
+				"subject="+URLEncoder.encode(title, "UTF-8"),
+				"text="+URLEncoder.encode(message, "UTF-8"),
 				"to="+to, 
 				"uh="+user.getModhash()
 				);

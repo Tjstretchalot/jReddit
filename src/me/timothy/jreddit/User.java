@@ -28,6 +28,14 @@ public class User {
 	}
 	
 	public void setModhash(String newModhash) {
+		if(newModhash == null || newModhash.isEmpty()) { 
+			System.err.println("Potential bug; setting newModhash to null or empty");
+			try {
+				throw new RuntimeException();
+			}catch(RuntimeException re) {
+				re.printStackTrace();
+			}
+		}
 		modhash = newModhash;
 	}
 	
