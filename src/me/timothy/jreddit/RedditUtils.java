@@ -93,7 +93,7 @@ public class RedditUtils {
 		Request req = requestHandler.getShell("comment").createRequest(
 						user.getCookie(),
 						"api_type=json",
-						"text=" + text,
+						"text=" + URLEncoder.encode(text, "UTF-8"),
 						"thing_id=" + parentFullname,
 						"uh=" + user.getModhash()
 				);
@@ -108,7 +108,7 @@ public class RedditUtils {
 				"api_type=json",
 				"subject="+URLEncoder.encode(title, "UTF-8"),
 				"text="+URLEncoder.encode(message, "UTF-8"),
-				"to="+to, 
+				"to="+URLEncoder.encode(to, "UTF-8"), 
 				"uh="+user.getModhash()
 				);
 		
