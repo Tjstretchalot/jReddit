@@ -75,6 +75,16 @@ public class RedditUtils {
 		return account;
 	}
 	
+	public static Account getAccountFor(User user, String username) throws IOException, ParseException {
+		Request req = requestHandler.getShell("about_user").createRequest(
+				user.getCookie(),
+				"uh=" + user.getModhash());
+		
+		Account account = new Account((JSONObject) req.doRequest("user=" + username));
+		
+		return account;
+	}
+	
 	public static void submitSelf(User user, String sub, String title, String text) throws IOException, ParseException {
 		Request req = requestHandler.getShell("submit").createRequest(
 				user.getCookie(),
