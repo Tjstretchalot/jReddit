@@ -10,6 +10,8 @@ import java.util.Properties;
 import java.util.Set;
 
 public class RequestHandler {
+	public static String BASE_URL = "http://www.reddit.com/";
+	
 	private Map<String, RequestShell> requestShells;
 	
 	public RequestHandler(Properties properties) { 
@@ -50,7 +52,7 @@ public class RequestHandler {
 				requType = RequestType.valueOf(strSpl[1]);
 				break;
 			case "url":
-				url = "http://www.reddit.com/" + strSpl[1];
+				url = BASE_URL + strSpl[1];
 				break;
 			case "returnType":
 				String[] strSpl1Spl = null;
