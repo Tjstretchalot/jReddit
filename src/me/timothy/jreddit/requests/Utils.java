@@ -18,16 +18,20 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import biz.source_code.base64Coder.Base64Coder;
+
 
 /**
  * This class contains (or will contain) various utilities for jReddit.
  * 
  */
 public class Utils {
+	public static String BASE = "http://www.reddit.com/";
+    public static String API_BASE = BASE + "api/";
+	public static String COMMENT_BASE = BASE + "comments/";
 
-    public static final String API_BASE = "http://www.reddit.com/api/";
-	public static final String COMMENT_BASE = "http://reddit.com/comments/";
-
+	public static String SITE_WIDE_USERNAME = null;
+	public static String SITE_WIDE_PASSWORD = null;
 
 	public static String USER_AGENT = 
                                     "Sample Java API user agent v0.01";
@@ -44,6 +48,10 @@ public class Utils {
     public static JSONObject post(String apiParams, URL url, String cookie)
             throws IOException, ParseException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        
+        if(SITE_WIDE_USERNAME != null && SITE_WIDE_PASSWORD != null) {
+        	authConnection(connection);
+        }
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
         connection.setDoOutput(true);
@@ -56,6 +64,7 @@ public class Utils {
         if(!cookie.isEmpty())
         	connection.setRequestProperty("cookie", "reddit_session=" + cookie);
         connection.setRequestProperty("User-Agent", USER_AGENT);
+        
         DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
         wr.writeBytes(apiParams);
         wr.flush();
@@ -128,6 +137,9 @@ public class Utils {
         if(cookie != null && !cookie.isEmpty())
         	connection.setRequestProperty("cookie", "reddit_session=" + cookie);
         connection.setRequestProperty("User-Agent", USER_AGENT);
+        if(SITE_WIDE_USERNAME != null && SITE_WIDE_PASSWORD != null) {
+        	authConnection(connection);
+        }
 
         return parseJsonObject(connection);
     }
@@ -238,5 +250,13 @@ public class Utils {
 		}
 		
 		return res.toString();
+	}
+	
+	private static void authConnection(HttpURLConnection connection) {
+    	String authStr = SITE_WIDE_USERNAME + ":" + SITE_WIDE_PASSWORD;
+    	String authEnc = Base64Coder.encodeString(authStr);
+    	System.out.println("authorizing with username:password of " + authStr + ", or " + authEnc);
+    	connection.setRequestProperty("Authorization", "Basic " + authEnc);
+    	System.out.println("Headers: " + connection.getRequestProperties().toString());
 	}
 }
