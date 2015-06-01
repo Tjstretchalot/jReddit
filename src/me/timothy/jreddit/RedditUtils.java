@@ -57,7 +57,8 @@ public class RedditUtils {
 						"passwd=" + URLEncoder.encode(user.getPassword(), "UTF-8")
 					);
 		
-		LoginResponse account = new LoginResponse((JSONObject) req.doRequest());
+		JSONObject resp = (JSONObject) req.doRequest();
+		LoginResponse account = new LoginResponse(resp);
 		
 		user.setModhash(account.modhash());
 		user.setCookie(account.cookie());
@@ -90,8 +91,10 @@ public class RedditUtils {
 				user.getCookie(),
 				"api_type=json",
 				"extension=json",
+				"kind=self",
 				"title=" + URLEncoder.encode(title, "UTF-8"),
 				"text=" + URLEncoder.encode(text, "UTF-8"),
+				"sr=" + URLEncoder.encode(sub, "UTF-8"),
 				"uh=" + user.getModhash()
 		);
 		
