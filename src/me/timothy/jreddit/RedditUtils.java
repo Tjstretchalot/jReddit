@@ -2,11 +2,7 @@ package me.timothy.jreddit;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.Files;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -35,16 +31,19 @@ public class RedditUtils {
 		
 		File requestsIni = new File(dir, "requests.ini");
 		if(!requestsIni.exists()) {
-			try {
-				HttpURLConnection con = (HttpURLConnection) (new URL("http://umad-barnyard.com/requests.ini")).openConnection();
-				InputStream inStream = con.getInputStream();
-				Files.copy(inStream, requestsIni.toPath());
-				inStream.close();
-				con.disconnect();
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
+//			try {
+//				HttpURLConnection con = (HttpURLConnection) (new URL("http://umad-barnyard.com/requests.ini")).openConnection();
+//				InputStream inStream = con.getInputStream();
+//				Files.copy(inStream, requestsIni.toPath());
+//				inStream.close();
+//				con.disconnect();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//				System.exit(1);
+//			}
+			
+			throw new RuntimeException("Missing requests.ini for RedditUtils (me.timothy.jreddit.RedditUtils)"
+					+ " Look at data/requests.ini on the GitHub page!");
 		}
 		requestHandler = new RequestHandler(new FileManager("data").loadProperties("requests.ini"));
 	}
@@ -216,6 +215,58 @@ public class RedditUtils {
 		Request req = requestHandler.getShell("read_message").createRequest(user.getCookie(),
 				"id="+ids, "uh="+user.getModhash());
 		
+		req.doRequest();
+	}
+	
+	/**
+	 * Gets the list of flair options for the specified link as the specified
+	 * user.
+	 * 
+	 * Example result:
+	 * <pre>
+{
+  "current":  {
+    "flair_css_class": null,
+    "flair_template_id": null,
+    "flair_text": null,
+    "flair_position": "left"
+  },
+  "choices":  [
+     {
+      "flair_css_class": "nolongerneeded",
+      "flair_template_id": "991c8042-3ecc-11e4-8052-12313d05258a",
+      "flair_text_editable": true,
+      "flair_position": "left",
+      "flair_text": "Completed"
+    }
+  ]
+}
+	 * </pre>
+	 * @param user the user to check the options of
+	 * @param subreddit the subreddit the link is in
+	 * @param linkFullname the link to check the options for
+	 * @return the listing containing flair options
+	 * @throws ParseException 
+	 * @throws IOException 
+	 */
+	public static JSONObject getFlairOptions(User user, String subreddit, String linkFullname) throws IOException, ParseException {
+		Request req = requestHandler.getShell("flair_selector").createRequest(user.getCookie(), "link=" + linkFullname);
+		
+		return (JSONObject) req.doRequest("sub=" + subreddit);
+	}
+	
+	/**
+	 * Flairs the specified link with the specified css class
+	 * @param user the user
+	 * @param linkId the link to flair
+	 * @param templateId the template of the flair
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @see #getFlairOptions(User, String, String)
+	 */
+	public static void flairLink(User user, String linkId, String templateId) throws IOException, ParseException {
+		Request req = requestHandler.getShell("flair_link").createRequest(user.getCookie(),
+				"api_type=json", "flair_template_id=" + templateId, "link=" + linkId, "uh="+user.getModhash());
 		req.doRequest();
 	}
 	
