@@ -11,6 +11,7 @@ import org.json.simple.parser.ParseException;
 
 import me.timothy.jreddit.info.Account;
 import me.timothy.jreddit.info.CommentResponse;
+import me.timothy.jreddit.info.ContributorsListing;
 import me.timothy.jreddit.info.Errorable;
 import me.timothy.jreddit.info.Listing;
 import me.timothy.jreddit.info.LoginResponse;
@@ -310,6 +311,39 @@ public class RedditUtils {
 		Listing listing = new Listing(jObject);
 		user.setModhash(listing.modhash());
 		return listing;
+	}
+	
+	/**
+	 * Gets the list of contributors to the specified subreddit
+	 * @param subreddit the subreddit to check contributors of
+	 * @param user the user who is logged in
+	 * @return  the contributors listing
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public static ContributorsListing getContributorsForSubreddit(String subreddit, User user) throws IOException, ParseException {
+		Request req = requestHandler.getShell("subreddit_contributors").createRequest(user.getCookie());
+		
+		JSONObject jObject = (JSONObject) req.doRequest("sub=" + subreddit);
+		ContributorsListing listing = new ContributorsListing(jObject);
+		user.setModhash(listing.modhash());
+		return listing;
+	}
+	
+	/**
+	 * Ads the specified username as a contributor to the specified subreddit
+	 * 
+	 * @param subreddit the subreddit to add to
+	 * @param username the username of the person who is being added
+	 * @param user the user who is logged in
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public static void addContributor(String subreddit, String username, User user) throws IOException, ParseException {
+		Request req = requestHandler.getShell("add_contributor").createRequest(user.getCookie(), 
+				"api_type=json", "type=contributor", "name=" + URLEncoder.encode(username, "UTF-8"), "uh=" + user.getModhash());
+		
+		req.doRequest("sub=" + subreddit);
 	}
 	
 	/**
