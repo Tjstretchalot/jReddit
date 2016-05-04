@@ -283,12 +283,13 @@ public class RedditUtils {
 	 */
 	public static Thing getThing(String fullname, User user) throws IOException, ParseException {
 		Request req = requestHandler.getShell("info").createRequest(
-					user.getCookie(),
+					user != null ? user.getCookie() : null,
 					"id=" + fullname
 				);
 		JSONObject jObject = (JSONObject) req.doRequest();
 		Listing listing = new Listing(jObject);
-		user.setModhash(listing.modhash());
+		if(user != null)
+			user.setModhash(listing.modhash());
 
 		return listing.getChild(0);
 	}

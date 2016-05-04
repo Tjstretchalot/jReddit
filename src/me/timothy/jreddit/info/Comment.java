@@ -28,7 +28,7 @@ public class Comment extends VotableAndCreated {
 	}
 	
 	public String body() {
-		return (String) data.get("body");
+		return ((String) data.get("body")).replaceAll("[\\s\\u0085\\p{Z}]", " ");
 	}
 	
 	public String bodyHTML() {

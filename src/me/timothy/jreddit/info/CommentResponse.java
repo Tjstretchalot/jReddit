@@ -2,8 +2,6 @@ package me.timothy.jreddit.info;
 
 import java.util.List;
 
-import me.timothy.jreddit.requests.Utils;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -36,6 +34,6 @@ public class CommentResponse implements Errorable {
 	
 	@Override
 	public String toString() {
-		return Utils.getJSONDebugString(object);
+		return "CommentResponse [object=" + object + ", json=" + json + "]";
 	}
 }
