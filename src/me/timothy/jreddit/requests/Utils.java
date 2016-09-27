@@ -10,7 +10,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -88,12 +87,6 @@ public class Utils {
     public static Object parseJsonObject(HttpURLConnection connection) throws ParseException, IOException {
     	JSONParser parser = new JSONParser();
 
-    	Map<String, List<String>> map = connection.getHeaderFields();
-    	System.out.println("URL: " + connection.getURL().toString());
-    	System.out.println("Responded with:");
-    	for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-    		System.out.println("  " + entry.getKey() + " = " + entry.getValue());
-    	}
     	Object object = null;
         try {
         	StringBuilder toParse = new StringBuilder();
@@ -107,8 +100,6 @@ public class Utils {
         		toParse.append("\n").append(ln);
         	br.close();
         	
-        	System.out.println("toParse=");
-            System.out.println(toParse);
 			object = parser.parse(toParse.toString());
         }catch(IOException ex) {
         	InputStream inStream = connection.getErrorStream();
@@ -281,6 +272,5 @@ public class Utils {
     	String authStr = username + ":" + password;
     	String authEnc = Base64Coder.encodeString(authStr);
     	connection.setRequestProperty("Authorization", "Basic " + authEnc);
-    	System.out.println("Headers: " + connection.getRequestProperties().toString());
 	}
 }

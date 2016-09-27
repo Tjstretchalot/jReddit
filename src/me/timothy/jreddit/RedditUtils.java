@@ -19,7 +19,6 @@ import me.timothy.jreddit.info.More;
 import me.timothy.jreddit.info.Thing;
 import me.timothy.jreddit.requests.Request;
 import me.timothy.jreddit.requests.RequestHandler;
-import me.timothy.jreddit.requests.Utils;
 
 public class RedditUtils {
 	public static final RequestHandler requestHandler;
@@ -59,9 +58,6 @@ public class RedditUtils {
 		JSONObject resp = (JSONObject) req.doRequest(user);
 		LoginResponse account = new LoginResponse(resp);
 		
-		System.out.println("successfully authed; account=");
-		System.out.println(account);
-		
 		String errorMess = (String) resp.get("error");
 		if(errorMess != null)
 			throw new RuntimeException("Reddit returned error: " + errorMess + "\n" + account);
@@ -95,8 +91,7 @@ public class RedditUtils {
 				"sr=" + URLEncoder.encode(sub, "UTF-8")
 		);
 		
-		Object o = req.doRequest(user);
-		System.out.println(Utils.getJSONDebugString(o));
+		req.doRequest(user);
 	}
 	
 	public static CommentResponse comment(User user, String parentFullname, String text) throws IOException, ParseException {
