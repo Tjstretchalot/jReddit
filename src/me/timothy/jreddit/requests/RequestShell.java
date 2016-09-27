@@ -5,17 +5,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.timothy.jreddit.info.IAuthInfo;
+
 public class RequestShell {
 	public RequestType requestType;
 	public String url;
 	public Class<?>[] returnTypes;
 	public String[] parameters;
+	public boolean requiresAuth;
 	
-	public RequestShell(RequestType requestType, String url, Class<?>[] returnTypes, String[] parameters) throws MalformedURLException {
+	public RequestShell(RequestType requestType, String url, Class<?>[] returnTypes, String[] parameters, boolean requiresAuth) throws MalformedURLException {
 		this.requestType = requestType;
 		this.url = url;
 		this.returnTypes = returnTypes;
 		this.parameters = parameters;
+		this.requiresAuth = requiresAuth;
 	}
 	
 	/**
@@ -24,7 +28,7 @@ public class RequestShell {
 	 * @param params something like "uh=some modhash", "username=asdf", "password=bob the builder"
 	 * @return the request
 	 */
-	public Request createRequest(String cookie, String... params) {
+	public Request createRequest(IAuthInfo authInfo, String... params) {
 		Map<String, String> parameters = new HashMap<>();
 		for(String str : params) {
 			String[] spl = str.split("=");
@@ -36,7 +40,7 @@ public class RequestShell {
 			
 			parameters.put(spl[0], spl[1]);
 		}
-		return new Request(url, parameters, cookie, requestType);
+		return new Request(url, parameters, authInfo, requestType, requiresAuth);
 	}
 	
 	public Class<?>[] getReturnTypes() {

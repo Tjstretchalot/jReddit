@@ -50,88 +50,82 @@ public class RedditUtils {
 	}
 	
 	public static void loginUser(User user) throws IOException, ParseException {
-		Request req = requestHandler.getShell("login").createRequest(
-						"", 
-						"api_type=json",
-						"user=" + user.getUsername(), 
-						"passwd=" + URLEncoder.encode(user.getPassword(), "UTF-8")
+		Request req = requestHandler.getShell("login").createRequest(null,
+						"grant_type=password",
+						"username=" + user.getUsername(), 
+						"password=" + URLEncoder.encode(user.getPassword(), "UTF-8")
 					);
 		
-		JSONObject resp = (JSONObject) req.doRequest();
+		JSONObject resp = (JSONObject) req.doRequest(user);
 		LoginResponse account = new LoginResponse(resp);
 		
-		user.setModhash(account.modhash());
-		user.setCookie(account.cookie());
+		System.out.println("successfully authed; account=");
+		System.out.println(account);
+		
+		String errorMess = (String) resp.get("error");
+		if(errorMess != null)
+			throw new RuntimeException("Reddit returned error: " + errorMess + "\n" + account);
+		
+		user.setLoginResponse(account);
 	}
 	
 	public static Account getAccount(User user) throws IOException, ParseException {
-		Request req = requestHandler.getShell("me").createRequest(
-				user.getCookie(),
-				"uh=" + user.getModhash()
-		);
+		Request req = requestHandler.getShell("me").createRequest(user.getLoginResponse());
 		
-		Account account = new Account((JSONObject) req.doRequest());
-		user.setModhash(account.modhash());
+		Account account = new Account((JSONObject) req.doRequest(user));
 		
 		return account;
 	}
 	
 	public static Account getAccountFor(User user, String username) throws IOException, ParseException {
-		Request req = requestHandler.getShell("about_user").createRequest(
-				user.getCookie(),
-				"uh=" + user.getModhash());
+		Request req = requestHandler.getShell("about_user").createRequest(user.getLoginResponse());
 		
-		Account account = new Account((JSONObject) req.doRequest("user=" + username));
+		Account account = new Account((JSONObject) req.doRequest(user, "user=" + username));
 		
 		return account;
 	}
 	
 	public static void submitSelf(User user, String sub, String title, String text) throws IOException, ParseException {
 		Request req = requestHandler.getShell("submit").createRequest(
-				user.getCookie(),
-				"api_type=json",
+				user.getLoginResponse(),
 				"extension=json",
 				"kind=self",
 				"title=" + URLEncoder.encode(title, "UTF-8"),
 				"text=" + URLEncoder.encode(text, "UTF-8"),
-				"sr=" + URLEncoder.encode(sub, "UTF-8"),
-				"uh=" + user.getModhash()
+				"sr=" + URLEncoder.encode(sub, "UTF-8")
 		);
 		
-		Object o = req.doRequest();
+		Object o = req.doRequest(user);
 		System.out.println(Utils.getJSONDebugString(o));
 	}
 	
 	public static CommentResponse comment(User user, String parentFullname, String text) throws IOException, ParseException {
 		Request req = requestHandler.getShell("comment").createRequest(
-						user.getCookie(),
-						"api_type=json",
+						user.getLoginResponse(),
 						"text=" + URLEncoder.encode(text, "UTF-8"),
-						"thing_id=" + parentFullname,
-						"uh=" + user.getModhash()
+						"thing_id=" + parentFullname
 				);
 		
-		return new CommentResponse((JSONObject) req.doRequest());
+		return new CommentResponse((JSONObject) req.doRequest(user));
 	}
 
 
 	public static Errorable sendPersonalMessage(User user, String to, String title, String message) throws IOException, ParseException {
 		Request req = requestHandler.getShell("compose").createRequest(
-				user.getCookie(),
-				"api_type=json",
+				user.getLoginResponse(),
 				"subject="+URLEncoder.encode(title, "UTF-8"),
 				"text="+URLEncoder.encode(message, "UTF-8"),
-				"to="+URLEncoder.encode(to, "UTF-8"), 
-				"uh="+user.getModhash()
+				"to="+URLEncoder.encode(to, "UTF-8")
 				);
 		
-		final JSONObject result = (JSONObject) req.doRequest();
+		final JSONObject result = (JSONObject) req.doRequest(user);
 		
 		return new Errorable() {
 
 			@Override
 			public List<?> getErrors() {
 				JSONObject json = (JSONObject) result.get("json");
+				if(json == null) return null;
 				
 				return (JSONArray) json.get("errors");
 			}
@@ -141,14 +135,12 @@ public class RedditUtils {
 	
 	public static Errorable edit(User user, String thingFullname, String text) throws IOException, ParseException {
 		Request req = requestHandler.getShell("editusertext").createRequest(
-						user.getCookie(),
-						"api_type=json",
+						user.getLoginResponse(),
 						"text=" + text,
-						"thing_id=" + thingFullname,
-						"uh=" + user.getModhash()
+						"thing_id=" + thingFullname
 				);
 		
-		final JSONObject obj = (JSONObject) req.doRequest();
+		final JSONObject obj = (JSONObject) req.doRequest(user);
 		return new Errorable() {
 
 			@Override
@@ -163,60 +155,52 @@ public class RedditUtils {
 	
 	public static Listing moreChildren(User user, String linkId, More more) throws IOException, ParseException {
 		Request req = requestHandler.getShell("morechildren").createRequest(
-						user.getCookie(),
-						"api_type=json",
+						user.getLoginResponse(),
 						"children=" + more.childrenCSV(),
 						"link_id=" + linkId
 				);
 		
-		Listing res = new Listing((JSONObject) req.doRequest());
-		user.setModhash(res.modhash());
+		Listing res = new Listing((JSONObject) req.doRequest(user));
 		return res;
 	}
 	
 	public static Listing getRecentComments(User user, String sub) throws IOException, ParseException {
 		Request req = requestHandler.getShell("sub_comments").createRequest(
-						user.getCookie()
+						user.getLoginResponse()
 					);
 		
-		Listing res = new Listing((JSONObject) req.doRequest("sub=" + sub));
-		user.setModhash(res.modhash());
+		Listing res = new Listing((JSONObject) req.doRequest(user, "sub=" + sub));
 		return res;
 	}
 	
 	public static Listing getLinkReplies(User user, String linkId) throws IOException, ParseException {
 		Request req = requestHandler.getShell("comments").createRequest(
-				user.getCookie(),
-				"uh=" + user.getModhash()
+				user.getLoginResponse()
 			);
-		Listing res = new Listing((JSONObject) ((JSONArray) req.doRequest("link_id=" + linkId)).get(1));
-		user.setModhash(res.modhash());
+		Listing res = new Listing((JSONObject) ((JSONArray) req.doRequest(user, "link_id=" + linkId)).get(1));
 		return res;
 	}
 	
 	public static Listing getSubmissions(User user, String sub, SortType sType) throws IOException, ParseException {
 		Request req = requestHandler.getShell("links_listing").createRequest(
-				user.getCookie(),
-				"sort=" + sType.name().toLowerCase(),
-				"uh=" + user.getModhash()
+				user.getLoginResponse(),
+				"sort=" + sType.name().toLowerCase()
 			);
-		Listing res = new Listing((JSONObject) req.doRequest("sub=" + sub));
-		user.setModhash(res.modhash());
+		Listing res = new Listing((JSONObject) req.doRequest(user, "sub=" + sub));
 		return res;
 	}
 
 	public static Listing getUnreadMessages(User user) throws IOException, ParseException {
-		Request req = requestHandler.getShell("message_unread").createRequest(user.getCookie());
-		Listing res = new Listing((JSONObject) req.doRequest());
-		user.setModhash(res.modhash());
+		Request req = requestHandler.getShell("message_unread").createRequest(user.getLoginResponse());
+		Listing res = new Listing((JSONObject) req.doRequest(user));
 		return res;
 	}
 
 	public static void markAsRead(User user, String ids) throws IOException, ParseException {
-		Request req = requestHandler.getShell("read_message").createRequest(user.getCookie(),
-				"id="+ids, "uh="+user.getModhash());
+		Request req = requestHandler.getShell("read_message").createRequest(user.getLoginResponse(),
+				"id="+ids);
 		
-		req.doRequest();
+		req.doRequest(user);
 	}
 	
 	/**
@@ -251,9 +235,9 @@ public class RedditUtils {
 	 * @throws IOException 
 	 */
 	public static JSONObject getFlairOptions(User user, String subreddit, String linkFullname) throws IOException, ParseException {
-		Request req = requestHandler.getShell("flair_selector").createRequest(user.getCookie(), "link=" + linkFullname);
+		Request req = requestHandler.getShell("flair_selector").createRequest(user.getLoginResponse(), "link=" + linkFullname);
 		
-		return (JSONObject) req.doRequest("sub=" + subreddit);
+		return (JSONObject) req.doRequest(user, "sub=" + subreddit);
 	}
 	
 	/**
@@ -266,9 +250,9 @@ public class RedditUtils {
 	 * @see #getFlairOptions(User, String, String)
 	 */
 	public static void flairLink(User user, String linkId, String templateId) throws IOException, ParseException {
-		Request req = requestHandler.getShell("flair_link").createRequest(user.getCookie(),
-				"api_type=json", "flair_template_id=" + templateId, "link=" + linkId, "uh="+user.getModhash());
-		req.doRequest();
+		Request req = requestHandler.getShell("flair_link").createRequest(user.getLoginResponse(),
+				"flair_template_id=" + templateId, "link=" + linkId);
+		req.doRequest(user);
 	}
 	
 	/**
@@ -283,13 +267,11 @@ public class RedditUtils {
 	 */
 	public static Thing getThing(String fullname, User user) throws IOException, ParseException {
 		Request req = requestHandler.getShell("info").createRequest(
-					user != null ? user.getCookie() : null,
+					user != null ? user.getLoginResponse() : null,
 					"id=" + fullname
 				);
-		JSONObject jObject = (JSONObject) req.doRequest();
+		JSONObject jObject = (JSONObject) req.doRequest(user);
 		Listing listing = new Listing(jObject);
-		if(user != null)
-			user.setModhash(listing.modhash());
 
 		return listing.getChild(0);
 	}
@@ -305,12 +287,11 @@ public class RedditUtils {
 			fullnames.append(asStr[i]);
 		}
 		Request req = requestHandler.getShell("info").createRequest(
-				user.getCookie(),
+				user.getLoginResponse(),
 				"id=" + fullnames
 			);
-		JSONObject jObject = (JSONObject) req.doRequest();
+		JSONObject jObject = (JSONObject) req.doRequest(user);
 		Listing listing = new Listing(jObject);
-		user.setModhash(listing.modhash());
 		return listing;
 	}
 	
@@ -323,11 +304,10 @@ public class RedditUtils {
 	 * @throws ParseException
 	 */
 	public static ContributorsListing getContributorsForSubreddit(String subreddit, User user) throws IOException, ParseException {
-		Request req = requestHandler.getShell("subreddit_contributors").createRequest(user.getCookie());
+		Request req = requestHandler.getShell("subreddit_contributors").createRequest(user.getLoginResponse());
 		
-		JSONObject jObject = (JSONObject) req.doRequest("sub=" + subreddit);
+		JSONObject jObject = (JSONObject) req.doRequest(user, "sub=" + subreddit);
 		ContributorsListing listing = new ContributorsListing(jObject);
-		user.setModhash(listing.modhash());
 		return listing;
 	}
 	
@@ -341,10 +321,11 @@ public class RedditUtils {
 	 * @throws ParseException
 	 */
 	public static void addContributor(String subreddit, String username, User user) throws IOException, ParseException {
-		Request req = requestHandler.getShell("add_contributor").createRequest(user.getCookie(), 
-				"api_type=json", "type=contributor", "name=" + URLEncoder.encode(username, "UTF-8"), "uh=" + user.getModhash());
+		Request req = requestHandler.getShell("add_contributor").createRequest(user.getLoginResponse(), 
+				"type=contributor", 
+				"name=" + URLEncoder.encode(username, "UTF-8"));
 		
-		req.doRequest("sub=" + subreddit);
+		req.doRequest(user, "sub=" + subreddit);
 	}
 	
 	/**

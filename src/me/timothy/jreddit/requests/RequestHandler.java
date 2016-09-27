@@ -38,6 +38,8 @@ public class RequestHandler {
 		
 		RequestType requType = null;
 		String url = null;
+		String baseUrl = null;
+		String requiresAuth = null;
 		Class<?>[] returnTypes = null;
 		List<String> params = new ArrayList<>();
 		
@@ -49,8 +51,14 @@ public class RequestHandler {
 			case "type":
 				requType = RequestType.valueOf(strSpl[1]);
 				break;
+			case "requiresAuth":
+				requiresAuth = strSpl[1];
+				break;
+			case "baseUrl":
+				baseUrl = strSpl[1];
+				break;
 			case "url":
-				url = Utils.BASE + strSpl[1];
+				url = strSpl[1];
 				break;
 			case "returnType":
 				String[] strSpl1Spl = null;
@@ -81,7 +89,27 @@ public class RequestHandler {
 			}
 		}
 		
-		return new RequestShell(requType, url, returnTypes, params.toArray(new String[0]));
+		if(baseUrl == null)
+			baseUrl = "null"; // throw error in switch
+		
+		String realBase = null;
+		switch(baseUrl)
+		{
+		case "BASE":
+			realBase = Utils.BASE;
+			break;
+		case "OAUTH_BASE":
+			realBase = Utils.OAUTH_BASE;
+			break;
+		case "API_BASE":
+			realBase = Utils.API_BASE;
+			break;
+		default:
+			throw new IllegalArgumentException("Expected BASE, API_BASE, or OAUTH_BASE from urlBase but got " + baseUrl + " (item=" + item + ")");
+		}
+		
+		boolean reqAuthBool = requiresAuth != null && requiresAuth.equals("true");
+		return new RequestShell(requType, realBase + url, returnTypes, params.toArray(new String[0]), reqAuthBool);
 	}
 	
 	public RequestShell getShell(String str) {

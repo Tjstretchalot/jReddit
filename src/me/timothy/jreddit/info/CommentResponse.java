@@ -1,5 +1,6 @@
 package me.timothy.jreddit.info;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -29,7 +30,19 @@ public class CommentResponse implements Errorable {
 
 	@Override
 	public List<?> getErrors() {
-		return (List<?>) json.get("errors");
+		if(object.containsKey("success")) {
+			Boolean success = (Boolean) object.get("success");
+			
+			if(success == Boolean.TRUE) {
+				return new ArrayList<>();
+			}
+			
+			return null;
+		}else if(json != null) {
+			return (List<?>) json.get("errors");
+		}else {
+			return new ArrayList<>();
+		}
 	}
 	
 	@Override

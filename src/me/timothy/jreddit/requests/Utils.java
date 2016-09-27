@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +20,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import biz.source_code.base64Coder.Base64Coder;
+import me.timothy.jreddit.User;
+import me.timothy.jreddit.info.IAuthInfo;
 
 
 /**
@@ -26,9 +29,9 @@ import biz.source_code.base64Coder.Base64Coder;
  * 
  */
 public class Utils {
-	public static String BASE = "http://www.reddit.com/";
-    public static String API_BASE = BASE + "api/";
-	public static String COMMENT_BASE = BASE + "comments/";
+	public static String BASE = "https://www.reddit.com/";
+	public static String OAUTH_BASE = "https://oauth.reddit.com/";
+	public static String API_BASE = "https://api.reddit.com/";
 
 	public static String SITE_WIDE_USERNAME = null;
 	public static String SITE_WIDE_PASSWORD = null;
@@ -44,14 +47,12 @@ public class Utils {
      * It basically submits a POST request and returns a JSON object that
      * corresponds to it.
      * @author hormigas
+     * @author Timothy
      */
-    public static JSONObject post(String apiParams, URL url, String cookie)
+    public static JSONObject post(String apiParams, URL url, IAuthInfo authInfo, User user, boolean requiresAuth)
             throws IOException, ParseException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         
-        if(SITE_WIDE_USERNAME != null && SITE_WIDE_PASSWORD != null) {
-        	authConnection(connection);
-        }
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
         connection.setDoOutput(true);
@@ -61,8 +62,17 @@ public class Utils {
                 "application/x-www-form-urlencoded; charset=UTF-8");
         connection.setRequestProperty("Content-Length",
                 String.valueOf(apiParams.length()));
-        if(!cookie.isEmpty())
-        	connection.setRequestProperty("cookie", "reddit_session=" + cookie);
+        
+        if(authInfo != null && url.toString().startsWith(OAUTH_BASE)) {
+        	String authHeader = authInfo.tokenType() + " " + authInfo.accessToken();
+        	connection.setRequestProperty("Authorization", authHeader);
+        }else if(requiresAuth) {
+        	authConnection(connection, user.getAppClientID(), user.getAppClientSecret());
+        }
+        else if(SITE_WIDE_USERNAME != null && SITE_WIDE_PASSWORD != null) {
+        	authConnection(connection, SITE_WIDE_USERNAME, SITE_WIDE_PASSWORD);
+        }
+        
         connection.setRequestProperty("User-Agent", USER_AGENT);
         
         DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
@@ -78,6 +88,12 @@ public class Utils {
     public static Object parseJsonObject(HttpURLConnection connection) throws ParseException, IOException {
     	JSONParser parser = new JSONParser();
 
+    	Map<String, List<String>> map = connection.getHeaderFields();
+    	System.out.println("URL: " + connection.getURL().toString());
+    	System.out.println("Responded with:");
+    	for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+    		System.out.println("  " + entry.getKey() + " = " + entry.getValue());
+    	}
     	Object object = null;
         try {
         	StringBuilder toParse = new StringBuilder();
@@ -91,6 +107,8 @@ public class Utils {
         		toParse.append("\n").append(ln);
         	br.close();
         	
+        	System.out.println("toParse=");
+            System.out.println(toParse);
 			object = parser.parse(toParse.toString());
         }catch(IOException ex) {
         	InputStream inStream = connection.getErrorStream();
@@ -106,24 +124,28 @@ public class Utils {
         	throw ex;
         }
         
+        
         return object;
 	}
 
 	/**
      * This function submits a GET request and returns a JSON object response
      * @author hormigas
+     * @author Timothy
      */
-    public static Object get(URL url, String cookie)
+    public static Object get(URL url, IAuthInfo authInfo, User user, boolean requiresAuth)
                                 throws IOException, ParseException {
-        return get("", url, cookie);
+        return get("", url, authInfo, user, requiresAuth);
     }
 
     /**
      * This function submits a GET request and returns a JSON object that
      * corresponds to it.
      * @author hormigas
+     * @param requiresAuth 
+     * @param user 
      */
-    public static Object get(String apiParams, URL url, String cookie)
+    public static Object get(String apiParams, URL url, IAuthInfo authInfo, User user, boolean requiresAuth)
                                 throws IOException, ParseException {
     	if(apiParams != null && !apiParams.isEmpty()) {
     		url = new URL(url.toString() + "?" + apiParams);
@@ -131,16 +153,18 @@ public class Utils {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
-        connection.setDoOutput(true);
         connection.setUseCaches(false);
         connection.setRequestMethod("GET");
-        if(cookie != null && !cookie.isEmpty())
-        	connection.setRequestProperty("cookie", "reddit_session=" + cookie);
         connection.setRequestProperty("User-Agent", USER_AGENT);
-        if(SITE_WIDE_USERNAME != null && SITE_WIDE_PASSWORD != null) {
-        	authConnection(connection);
+        if(authInfo != null && url.toString().startsWith(OAUTH_BASE)) {
+        	String authStr = authInfo.tokenType() + " " + authInfo.accessToken();
+        	connection.setRequestProperty("Authorization", authStr);
+        }else if(requiresAuth) {
+        	authConnection(connection, user.getAppClientID(), user.getAppClientSecret());
+        }else if(SITE_WIDE_USERNAME != null && SITE_WIDE_PASSWORD != null) {
+        	authConnection(connection, SITE_WIDE_USERNAME, SITE_WIDE_PASSWORD);
         }
-
+        
         return parseJsonObject(connection);
     }
     
@@ -252,10 +276,10 @@ public class Utils {
 		return res.toString();
 	}
 	
-	private static void authConnection(HttpURLConnection connection) {
-    	String authStr = SITE_WIDE_USERNAME + ":" + SITE_WIDE_PASSWORD;
+	private static void authConnection(HttpURLConnection connection, String username, String password)
+	{
+    	String authStr = username + ":" + password;
     	String authEnc = Base64Coder.encodeString(authStr);
-    	System.out.println("authorizing with username:password of " + authStr + ", or " + authEnc);
     	connection.setRequestProperty("Authorization", "Basic " + authEnc);
     	System.out.println("Headers: " + connection.getRequestProperties().toString());
 	}

@@ -9,7 +9,10 @@ public abstract class Thing {
 	public Thing(JSONObject object) {
 		this.object = object;
 		
-		data = (JSONObject) object.get("data");
+		if(object.containsKey("data"))
+			data = (JSONObject) object.get("data");
+		else
+			data = object;
 	}
 	
 	public String id() {

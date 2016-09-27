@@ -1,34 +1,36 @@
 package me.timothy.jreddit.info;
 
-import java.util.List;
+import org.json.simple.JSONObject;
 
 import me.timothy.jreddit.requests.Utils;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
-public class LoginResponse implements Errorable {
+public class LoginResponse implements IAuthInfo {
 	protected JSONObject object;
-	protected JSONObject jsonObj;
+	protected long acquiredAt;
 	
 	public LoginResponse(JSONObject obj) {
 		object = obj;
-		jsonObj = (JSONObject) object.get("json");
+		acquiredAt = System.currentTimeMillis();
 	}
 	
-	public String cookie() {
-		JSONObject data = (JSONObject) jsonObj.get("data");
-		return (String) data.get("cookie");
+	public String accessToken() {
+		return (String) object.get("access_token");
 	}
 	
-	public String modhash() {
-		JSONObject data = (JSONObject) jsonObj.get("data");
-		return (String) data.get("modhash");
+	public long expiresIn() {
+		return ((Number) object.get("expires_in")).longValue();
 	}
 	
-	@Override
-	public List<?> getErrors() {
-		return (JSONArray) jsonObj.get("errors");
+	public String scope() {
+		return (String) object.get("scope");
+	}
+	
+	public String tokenType() {
+		return (String) object.get("token_type");
+	}
+	
+	public long acquiredAt() {
+		return acquiredAt;
 	}
 	
 	@Override
