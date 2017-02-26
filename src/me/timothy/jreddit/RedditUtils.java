@@ -94,6 +94,18 @@ public class RedditUtils {
 		req.doRequest(user);
 	}
 	
+	public static void report(User user, String thingFullname, String otherReason) throws IOException, ParseException
+	{
+		Request req = requestHandler.getShell("report").createRequest(
+				user.getLoginResponse(),
+				"api_type=json",
+				"thing_id=" + URLEncoder.encode(thingFullname, "UTF-8"),
+				"other_reason=" + URLEncoder.encode(otherReason, "UTF-8")
+				);
+		
+		req.doRequest(user);
+	}
+	
 	public static CommentResponse comment(User user, String parentFullname, String text) throws IOException, ParseException {
 		Request req = requestHandler.getShell("comment").createRequest(
 						user.getLoginResponse(),
