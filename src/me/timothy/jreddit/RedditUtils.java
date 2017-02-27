@@ -100,6 +100,7 @@ public class RedditUtils {
 				user.getLoginResponse(),
 				"api_type=json",
 				"thing_id=" + URLEncoder.encode(thingFullname, "UTF-8"),
+				"reason=other",
 				"other_reason=" + URLEncoder.encode(otherReason, "UTF-8")
 				);
 		
