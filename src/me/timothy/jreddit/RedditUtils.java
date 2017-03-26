@@ -3,6 +3,7 @@ package me.timothy.jreddit;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -10,11 +11,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import me.timothy.jreddit.info.Account;
+import me.timothy.jreddit.info.BannedUsersListing;
 import me.timothy.jreddit.info.CommentResponse;
 import me.timothy.jreddit.info.ContributorsListing;
 import me.timothy.jreddit.info.Errorable;
 import me.timothy.jreddit.info.Listing;
 import me.timothy.jreddit.info.LoginResponse;
+import me.timothy.jreddit.info.ModeratorListing;
 import me.timothy.jreddit.info.More;
 import me.timothy.jreddit.info.Thing;
 import me.timothy.jreddit.requests.Request;
@@ -320,7 +323,95 @@ public class RedditUtils {
 	}
 	
 	/**
-	 * Ads the specified username as a contributor to the specified subreddit
+	 * Gets the list of banned users to the specified subreddit, searching by userToCheck
+	 * 
+	 * @param subreddit the subreddit
+	 * @param userToCheck the user to search for
+	 * @param user an authorized user
+	 * @return the banned users listing
+	 * @throws IOException if one occurs
+	 * @throws ParseException if one occurs
+	 */
+	public static BannedUsersListing getBannedUsersForSubredditByName(String subreddit, String userToCheck, User user) throws IOException, ParseException {
+		Request req = requestHandler.getShell("subreddit_banned_users").createRequest(user.getLoginResponse(), 
+					"user=" + URLEncoder.encode(userToCheck, "UTF-8"));
+		
+		JSONObject jObject = (JSONObject) req.doRequest(user, "sub=" + subreddit);
+		BannedUsersListing listing = new BannedUsersListing(jObject);
+		return listing;
+	}
+	
+	/**
+	 * Gets the list of moderators to the specified subreddit, searching by userToCheck
+	 * 
+	 * @param subreddit the subreddit
+	 * @param userToCheck the user to check
+	 * @param user the user
+	 * @return the moderator listing returned
+	 * @throws IOException if one occurs
+	 * @throws ParseException if one occurs
+	 */
+	public static ModeratorListing getModeratorForSubredditByName(String subreddit, String userToCheck, User user) throws IOException, ParseException {
+		Request req = requestHandler.getShell("subreddit_moderators").createRequest(user.getLoginResponse(), 
+				"user=" + URLEncoder.encode(userToCheck, "UTF-8"));
+	
+		JSONObject jObject = (JSONObject) req.doRequest(user, "sub=" + subreddit);
+		ModeratorListing listing = new ModeratorListing(jObject);
+		return listing;
+	}
+	
+	/**
+	 * Adds a relationship between the specified username and the specified
+	 * subreddit. Allowed types are moderator, moderator_invite, contributor,
+	 * banned, muted, wikibanned, wikicontributor, friend, and enemy.
+	 * 
+	 * @param subreddit The subreddit in the relationship
+	 * @param username The user in the relationship
+	 * @param type The type of relationship
+	 * @param note Less than 100 characters
+	 * @param banMessage If banned, raw markdown text to send to the user
+	 * @param banReason If banned, a string no longer than 100 characters for other mods to see
+	 * @param user The authorized user
+	 * @throws IOException if one occurs
+	 * @throws ParseException if one occurs
+	 */
+	public static void addRelationship(String subreddit, String username, String type, String note, 
+			String banMessage, String banReason, User user) throws IOException, ParseException 
+	{
+		List<String> params = new ArrayList<>();
+		params.add("type=" + URLEncoder.encode(type, "UTF-8"));
+		params.add("name=" + URLEncoder.encode(username, "UTF-8"));
+		if(note != null)
+			params.add("note=" + URLEncoder.encode(note, "UTF-8"));
+		if(banMessage != null)
+			params.add("ban_message=" + URLEncoder.encode(banMessage, "UTF-8"));
+		if(banReason != null)
+			params.add("ban_reason=" + URLEncoder.encode(banReason, "UTF-8"));
+		
+		Request req = requestHandler.getShell("user_sub_friend").createRequest(user.getLoginResponse(), params.toArray(new String[]{}));
+		
+		req.doRequest(user, "sub=" + subreddit);
+	}
+	
+	/**
+	 * Removes a relationship between a user and a subreddit.
+	 * 
+	 * @param subreddit The subreddit
+	 * @param username The username
+	 * @param type The type of relationship
+	 * @param user The authorized user to remove the relationship
+	 */
+	public static void removeRelationship(String subreddit, String username, String type, User user) throws IOException, ParseException 
+	{
+		Request req = requestHandler.getShell("user_sub_unfriend").createRequest(user.getLoginResponse(), 
+				"name=" + URLEncoder.encode(username, "UTF-8"),
+				"type=" + URLEncoder.encode(type, "UTF-8"));
+		
+		req.doRequest(user, "sub=" + subreddit);
+	}
+	
+	/**
+	 * Adds the specified username as a contributor to the specified subreddit
 	 * 
 	 * @param subreddit the subreddit to add to
 	 * @param username the username of the person who is being added
@@ -329,11 +420,49 @@ public class RedditUtils {
 	 * @throws ParseException
 	 */
 	public static void addContributor(String subreddit, String username, User user) throws IOException, ParseException {
-		Request req = requestHandler.getShell("add_contributor").createRequest(user.getLoginResponse(), 
-				"type=contributor", 
-				"name=" + URLEncoder.encode(username, "UTF-8"));
-		
-		req.doRequest(user, "sub=" + subreddit);
+		addRelationship(subreddit, username, "contributor", null, null, null, user);
+	}
+	
+	/**
+	 * Removes the specified username from the contributors to the specified subreddit
+	 * 
+	 * @param subreddit The subreddit
+	 * @param username The username to remove from contributors
+	 * @param user An authorized user
+	 * @throws IOException if one occurs
+	 * @throws ParseException if one occurs
+	 */
+	public static void removeContributor(String subreddit, String username, User user) throws IOException, ParseException {
+		removeRelationship(subreddit, username, "contributor", user);
+	}
+	
+	/**
+	 * Bans the specified username from the specified subreddit.
+	 * 
+	 * @param subreddit The subreddit
+	 * @param username The user to ban
+	 * @param banMessage The message to tell the user, in raw markdown text
+	 * @param banReason A predefined string, typically "other"
+	 * @param note The note to other moderators, less than 100 characters.
+	 * @param user The authorized user
+	 * @throws IOException if one occurs
+	 * @throws ParseException if one occurs
+	 */
+	public static void banFromSubreddit(String subreddit, String username, String banMessage, String banReason, String note, User user) throws IOException, ParseException {
+		addRelationship(subreddit, username, "banned", note, banMessage, banReason, user);
+	}
+	
+	/**
+	 * Unbans the specified username from the specified subreddit
+	 * 
+	 * @param subreddit The subreddit
+	 * @param username The user to unban
+	 * @param user An authorized user
+	 * @throws IOException if one occurs
+	 * @throws ParseException if one occurs
+	 */
+	public static void unbanFromSubreddit(String subreddit, String username, User user) throws IOException, ParseException {
+		removeRelationship(subreddit, username, "banned", user);
 	}
 	
 	/**
