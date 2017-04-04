@@ -321,7 +321,26 @@ public class RedditUtils {
 		ContributorsListing listing = new ContributorsListing(jObject);
 		return listing;
 	}
-	
+
+	/**
+	 * Gets the list of contributors by the specified name to the specified subreddit
+	 * @param subreddit the subreddit to check contributors of
+	 * @param userToCheck the user to check
+	 * @param user the user who is logged in
+	 * @return  the contributors listing
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public static ContributorsListing getContributorsForSubredditByName(String subreddit, String userToCheck, User user) throws IOException, ParseException {
+		Request req = requestHandler.getShell("subreddit_contributors").createRequest(
+				user.getLoginResponse(),
+				"user=" + URLEncoder.encode(userToCheck, "UTF-8"));
+		
+		JSONObject jObject = (JSONObject) req.doRequest(user, "sub=" + subreddit);
+		ContributorsListing listing = new ContributorsListing(jObject);
+		return listing;
+	}
+		
 	/**
 	 * Gets the list of banned users to the specified subreddit, searching by userToCheck
 	 * 
