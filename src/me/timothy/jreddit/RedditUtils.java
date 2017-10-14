@@ -485,6 +485,36 @@ public class RedditUtils {
 	}
 	
 	/**
+	 * Get the recent actions by moderators in a specific subreddit
+	 *  
+	 * @param subreddit the subreddit
+	 * @param mod (optional) the moderator you are interested in
+	 * @param type (optional) the type of action you are interested in
+	 * @param after (optional) the id of the thing to continue after
+	 * @param user the user authorized to do this
+	 * @return a listing of ModActions
+	 * @throws IOException if one occurs
+	 * @throws ParseException if one occurs
+	 */
+	public static Listing getModeratorLog(String subreddit, String mod, String type, String after, User user) throws IOException, ParseException {
+		List<String> optionsList = new ArrayList<>();
+		if(mod != null) {
+			optionsList.add("mod=" + URLEncoder.encode(mod, "UTF-8"));
+		}
+		if(type != null) {
+			optionsList.add("type=" + URLEncoder.encode(type, "UTF-8"));
+		}
+		if(after != null) {
+			optionsList.add("after=" + URLEncoder.encode(type, "UTF-8"));
+		}
+		Request req = requestHandler.getShell("modlog").createRequest(user.getLoginResponse(), optionsList.toArray(new String[]{}));
+	
+		JSONObject jObject = (JSONObject) req.doRequest(user, "sub=" + subreddit);
+		Listing listing = new Listing(jObject);
+		return listing;
+	}
+	
+	/**
 	 * Sleeps for some period of time, in seconds, and
 	 * returns if the thread was interrupted in that period.
 	 * 

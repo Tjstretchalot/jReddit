@@ -37,6 +37,8 @@ public abstract class Thing {
 			return new Listing(obj);
 		case "more":
 			return new More(obj);
+		case "modaction":
+			return new ModAction(obj);
 		case "t1":
 			return new Comment(obj);
 		case "t2":
