@@ -487,22 +487,28 @@ public class RedditUtils {
 	/**
 	 * Get the recent actions by moderators in a specific subreddit
 	 *  
+	 * Should not set both before and after at the same time!
+	 * 
 	 * @param subreddit the subreddit
 	 * @param mod (optional) the moderator you are interested in
 	 * @param type (optional) the type of action you are interested in
+	 * @param before (optional) the id of the thing to continue before
 	 * @param after (optional) the id of the thing to continue after
 	 * @param user the user authorized to do this
 	 * @return a listing of ModActions
 	 * @throws IOException if one occurs
 	 * @throws ParseException if one occurs
 	 */
-	public static Listing getModeratorLog(String subreddit, String mod, String type, String after, User user) throws IOException, ParseException {
+	public static Listing getModeratorLog(String subreddit, String mod, String type, String before, String after, User user) throws IOException, ParseException {
 		List<String> optionsList = new ArrayList<>();
 		if(mod != null) {
 			optionsList.add("mod=" + URLEncoder.encode(mod, "UTF-8"));
 		}
 		if(type != null) {
 			optionsList.add("type=" + URLEncoder.encode(type, "UTF-8"));
+		}
+		if(before != null) {
+			optionsList.add("before=" + URLEncoder.encode(type, "UTF-8"));
 		}
 		if(after != null) {
 			optionsList.add("after=" + URLEncoder.encode(type, "UTF-8"));
