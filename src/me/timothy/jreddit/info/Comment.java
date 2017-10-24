@@ -96,6 +96,10 @@ public class Comment extends VotableAndCreated {
 		return (String) data.get("subreddit");
 	}
 	
+	public String permalink() {
+		return (String) data.get("permalink");
+	}
+	
 	public String subredditId() {
 		return (String) data.get("subreddit_id");
 	}
