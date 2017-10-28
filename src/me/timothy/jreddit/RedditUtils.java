@@ -508,10 +508,10 @@ public class RedditUtils {
 			optionsList.add("type=" + URLEncoder.encode(type, "UTF-8"));
 		}
 		if(before != null) {
-			optionsList.add("before=" + URLEncoder.encode(type, "UTF-8"));
+			optionsList.add("before=" + URLEncoder.encode(before, "UTF-8"));
 		}
 		if(after != null) {
-			optionsList.add("after=" + URLEncoder.encode(type, "UTF-8"));
+			optionsList.add("after=" + URLEncoder.encode(after, "UTF-8"));
 		}
 		Request req = requestHandler.getShell("modlog").createRequest(user.getLoginResponse(), optionsList.toArray(new String[]{}));
 	
