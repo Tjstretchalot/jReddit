@@ -521,6 +521,53 @@ public class RedditUtils {
 	}
 	
 	/**
+	 * Fetch the history of the user with the given username. Returns null if we get a 404
+	 * error message. Raises a IOException for other types of error results.
+	 * 
+	 * @param username the username of the person
+	 * @param sort one of "hot", "new", "top", "controversial"
+	 * @param type one of "links", "comments"
+	 * @param after fullname of a thing
+	 * @param before fullname of a thing
+	 * @param limit positive integer (default: 0)
+	 * @param user the logged in user
+	 * @return a listing of comments and/or links (depending on type)
+	 */
+	public static Listing getUserHistory(String username, String sort, String type, String after, String before, int limit, User user) throws IOException, ParseException {
+		if(username == null)
+			throw new NullPointerException("username cannot be null");
+		
+		List<String> optionsList = new ArrayList<>();
+		if(sort != null) {
+			optionsList.add("sort=" + URLEncoder.encode(sort, "UTF-8"));
+		}
+		if(type != null) {
+			optionsList.add("type=" + URLEncoder.encode(type, "UTF-8"));
+		}
+		if(after != null) {
+			optionsList.add("after=" + URLEncoder.encode(after, "UTF-8"));
+		}
+		if(before != null) {
+			optionsList.add("before=" + URLEncoder.encode(before, "UTF-8"));
+		}
+		if(limit != 0) {
+			optionsList.add("limit=" + limit);
+		}
+		Request req = requestHandler.getShell("user_comments").createRequest(user.getLoginResponse(), optionsList.toArray(new String[] {}));
+		
+		JSONObject jObject = (JSONObject) req.doRequest(user, "username=" + username);
+		if(jObject.containsKey("error")) {
+			int err = ((Integer)jObject.get("error")).intValue();
+			if (err == 404)
+				return null;
+			
+			throw new IOException("error " + err + "; message = " + jObject.get("message").toString());
+		}
+		
+		return new Listing(jObject);
+	}
+	
+	/**
 	 * Sleeps for some period of time, in seconds, and
 	 * returns if the thread was interrupted in that period.
 	 * 
