@@ -22,6 +22,7 @@ import me.timothy.jreddit.info.More;
 import me.timothy.jreddit.info.Thing;
 import me.timothy.jreddit.requests.Request;
 import me.timothy.jreddit.requests.RequestHandler;
+import me.timothy.jreddit.requests.RequestShell;
 
 public class RedditUtils {
 	public static final RequestHandler requestHandler;
@@ -494,12 +495,13 @@ public class RedditUtils {
 	 * @param type (optional) the type of action you are interested in
 	 * @param before (optional) the id of the thing to continue before
 	 * @param after (optional) the id of the thing to continue after
+	 * @param limit (optional) the maximum number of things to get (default: 25, max: 500)
 	 * @param user the user authorized to do this
 	 * @return a listing of ModActions
 	 * @throws IOException if one occurs
 	 * @throws ParseException if one occurs
 	 */
-	public static Listing getModeratorLog(String subreddit, String mod, String type, String before, String after, User user) throws IOException, ParseException {
+	public static Listing getModeratorLog(String subreddit, String mod, String type, String before, String after, Integer limit, User user) throws IOException, ParseException {
 		List<String> optionsList = new ArrayList<>();
 		if(mod != null) {
 			optionsList.add("mod=" + URLEncoder.encode(mod, "UTF-8"));
@@ -513,6 +515,10 @@ public class RedditUtils {
 		if(after != null) {
 			optionsList.add("after=" + URLEncoder.encode(after, "UTF-8"));
 		}
+		if(limit != null) {
+			optionsList.add("limit=" + limit.intValue());
+		}
+		
 		Request req = requestHandler.getShell("modlog").createRequest(user.getLoginResponse(), optionsList.toArray(new String[]{}));
 	
 		JSONObject jObject = (JSONObject) req.doRequest(user, "sub=" + subreddit);
@@ -553,9 +559,11 @@ public class RedditUtils {
 		if(limit != 0) {
 			optionsList.add("limit=" + limit);
 		}
-		Request req = requestHandler.getShell("user_comments").createRequest(user.getLoginResponse(), optionsList.toArray(new String[] {}));
 		
-		JSONObject jObject = (JSONObject) req.doRequest(user, "username=" + username);
+		RequestShell shell = requestHandler.getShell("user_comments");
+		Request req = shell.createRequest(user.getLoginResponse(), optionsList.toArray(new String[] {}));
+		
+		JSONObject jObject = (JSONObject) req.doRequest(user, "user=" + username);
 		if(jObject.containsKey("error")) {
 			int err = ((Integer)jObject.get("error")).intValue();
 			if (err == 404)
