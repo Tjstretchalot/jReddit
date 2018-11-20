@@ -576,6 +576,50 @@ public class RedditUtils {
 	}
 	
 	/**
+	 * Accepts a moderator invite from the given subreddit.
+	 * 
+	 * @param subreddit The subreddit to accept the moderator invite from
+	 * @param user the user who is accepting the invite
+	 * @throws IOException if one occurs or we get an unexpected error from reddit
+	 * @throws ParseException if one occurs
+	 * @throws IllegalArgumentException if subreddit or user is null or user is not logged in
+	 * @return True if the invite was accepted, false if there is no pending invite
+	 */
+	public static boolean acceptModeratorInvite(String subreddit, User user) throws IOException, ParseException {
+		if(subreddit == null)
+			throw new IllegalArgumentException("subreddit cannot be null!");
+		if(user == null)
+			throw new IllegalArgumentException("user cannot be null!");
+		if(user.getLoginResponse() == null)
+			throw new IllegalArgumentException("user is not logged in! (login response is null)");
+		
+		RequestShell shell = requestHandler.getShell("accept_mod_invite");
+		Request req = shell.createRequest(user.getLoginResponse(), "api_type=json");
+		
+		JSONObject result = (JSONObject) req.doRequest(user, "sub=" + subreddit);
+		
+		if(result.containsKey("json")) {
+			JSONObject json = (JSONObject)result.get("json");
+			
+			if(json.containsKey("errors")) {
+				JSONArray errorsArr = (JSONArray)json.get("errors");
+				if(errorsArr.size() >= 1) {
+					JSONArray error = (JSONArray) errorsArr.get(0);
+					if(error.size() >= 2) {
+						String errorIdent = (String)error.get(0);
+						if(errorIdent.equals("NO_INVITE_FOUND"))
+							return false;
+					}
+					
+					throw new IOException("Reddit returned errors: " + errorsArr.toJSONString());
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
 	 * Sleeps for some period of time, in seconds, and
 	 * returns if the thread was interrupted in that period.
 	 * 
