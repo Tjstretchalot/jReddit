@@ -1,6 +1,7 @@
 package me.timothy.jreddit;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -80,12 +81,37 @@ public class RedditUtils {
 	public static Account getAccountFor(User user, String username) throws IOException, ParseException {
 		Request req = requestHandler.getShell("about_user").createRequest(user.getLoginResponse());
 		
-		Account account = new Account((JSONObject) req.doRequest(user, "user=" + username));
+		JSONObject obj;
+		try {
+			obj = (JSONObject) req.doRequest(user, "user=" + username);
+		}catch(FileNotFoundException fnf) {
+			return null;
+		}
+		
+		if(obj.containsKey("error")) {
+			int errorCode = ((Long) obj.get("error")).intValue();
+			if(errorCode == 404)
+				return null;
+		}
+		
+		Account account = new Account(obj);
 		
 		return account;
 	}
 	
-	public static void submitSelf(User user, String sub, String title, String text) throws IOException, ParseException {
+	/**
+	 * Submits a self-post to the given subreddit.
+	 * 
+	 * @param user the user who is posting
+	 * @param sub the subreddit to post on
+	 * @param title the title of the submission
+	 * @param text the self teext
+	 * @return NULL if this request is bad, true if this request succeeded, false if this request failed but only for temporary reasons
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	@SuppressWarnings("unchecked")
+	public static Boolean submitSelf(User user, String sub, String title, String text) throws IOException, ParseException {
 		Request req = requestHandler.getShell("submit").createRequest(
 				user.getLoginResponse(),
 				"extension=json",
@@ -95,7 +121,65 @@ public class RedditUtils {
 				"sr=" + URLEncoder.encode(sub, "UTF-8")
 		);
 		
-		req.doRequest(user);
+		JSONObject obj = (JSONObject) req.doRequest(user);
+		
+		boolean success = ((Boolean)obj.getOrDefault("success", false)).booleanValue();
+		if(success)
+			return true;
+		
+		if(!obj.containsKey("jquery"))
+			return false; // temporary issue
+		
+		JSONArray jquery = (JSONArray) obj.get("jquery");
+		if(jquery == null)
+			return false; // most likely some temporary issue from a bad reddit push
+		
+		for(Object jqObj : jquery) {
+			if(!(jqObj instanceof JSONArray))
+				continue;
+			JSONArray jqThing = (JSONArray) jqObj;
+			if(jqThing.size() < 4)
+				continue;
+			
+			Object actionObj = jqThing.get(2);
+			if(actionObj == null || !(actionObj instanceof String))
+				continue;
+			
+			String action = (String) actionObj;
+			if(action.equals("call")) {
+				Object paramsObj = jqThing.get(3);
+				if(paramsObj == null || !(paramsObj instanceof JSONArray))
+					continue;
+				
+				JSONArray params = (JSONArray)paramsObj;
+				if(params.isEmpty())
+					continue;
+				
+				Object errObj = params.get(0);
+				if(errObj == null || !(errObj instanceof String))
+					continue;
+				
+				String err = (String) errObj;
+				if(!err.startsWith(".error."))
+					continue;
+				
+				int startSubstrInd = ".error.".length();
+				if(startSubstrInd == err.length())
+					continue;
+				
+				StringBuilder errConstB = new StringBuilder();
+				for(int ind = startSubstrInd; ind < err.length() && err.charAt(ind) != '.'; ind++) {
+					errConstB.append(err.charAt(ind));
+				}
+				
+				String errConst = errConstB.toString();
+				if(errConst.equals("SUBREDDIT_NOTALLOWED"))
+					return null;
+				
+				System.err.println("Unexpected error constant from reddit submit self: " + errConst);
+			}
+		}
+		return false;
 	}
 	
 	public static void report(User user, String thingFullname, String otherReason) throws IOException, ParseException
