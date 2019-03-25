@@ -9,19 +9,19 @@ public class Message extends Thing implements Created {
 	}
 	
 	public String author() {
-		return (String) data.get("author");
+		return getString("author", true);
 	}
 	
 	public String body() {
-		return (String) data.get("body");
+		return getString("body", true);
 	}
 	
 	public String bodyHTML() {
-		return (String) data.get("body_html");
+		return getString("body_html", true);
 	}
 	
 	public String context() {
-		return (String) data.get("context");
+		return getString("context", true);
 	}
 	
 	/**
@@ -36,19 +36,19 @@ public class Message extends Thing implements Created {
 	}
 	
 	public String linkTitle() {
-		return (String) data.get("link_title");
+		return getString("link_title", true);
 	}
 	
 	public String name() {
-		return (String) data.get("name");
+		return getString("name", true);
 	}
 	
 	public boolean isNew() {
-		return (boolean) data.get("new");
+		return getBoolean("new", true);
 	}
 	
 	public String parentId() {
-		return (String) data.get("parent_id");
+		return getString("parent_id", true);
 	}
 	
 	public Object replies() { // TODO figure out how this works
@@ -56,25 +56,25 @@ public class Message extends Thing implements Created {
 	}
 	
 	public String subject() {
-		return (String) data.get("subject");
+		return getString("subject", true);
 	}
 	
 	public String subreddit() {
-		return (String) data.get("subreddit");
+		return getString("subreddit", true);
 	}
 	
 	public boolean wasComment() {
-		return (boolean) data.get("was_comment");
+		return getBoolean("was_comment", true);
 	}
 
 	@Override
 	public double created() {
-		return (double) data.get("created");
+		return getDouble("created", true);
 	}
 
 	@Override
 	public double createdUTC() {
-		return (double) data.get("created_utc");
+		return getDouble("created_utc", true);
 	}
 
 	@Override

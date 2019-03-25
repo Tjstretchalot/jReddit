@@ -19,19 +19,19 @@ public class Wikipage extends Thing {
 	}
 	
 	public String contentMarkdown() {
-		return (String) data.get("content_md");
+		return getString("content_md", true);
 	}
 	
 	public String contentHTML() {
-		return (String) data.get("content_html");
+		return getString("content_html", true);
 	}
 	
 	public double revisionDate() {
-		return ((Number) data.get("revision_date")).doubleValue();
+		return getDouble("revision_date", true);
 	}
 	
 	public boolean mayRevise() {
-		return ((Boolean) data.get("may_revise")).booleanValue();
+		return getBoolean("may_revise", true);
 	}
 	
 	/**

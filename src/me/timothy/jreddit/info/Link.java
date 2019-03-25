@@ -8,42 +8,42 @@ public class Link extends VotableAndCreated {
 	}
 	
 	public String author() {
-		return (String) data.get("author");
+		return getString("author", true);
 	}
 	
 	public String authorFlairCSSClass() {
-		return (String) data.get("author_flair_css_class");
+		return getString("author_flair_css_class", true);
 	}
 	
 	public String authorFlairText() {
-		return (String) data.get("author_flair_text");
+		return getString("author_flair_text", true);
 	}
 	
 	public boolean clicked() {
-		return (Boolean) data.get("clicked");
+		return getBoolean("clicked", true);
 	}
 	
 	/**
 	 * @return the top level domain that this submission links to. Self posts are self.*subreddit*
 	 */
 	public String domain() {
-		return (String) data.get("domain");
+		return getString("domain", true);
 	}
 	
 	public boolean hidden() {
-		return (Boolean) data.get("hidden");
+		return getBoolean("hidden", true);
 	}
 	
 	public boolean isSelf() {
-		return (Boolean) data.get("is_self");
+		return getBoolean("is_self", true);
 	}
 	
 	public String linkFlairCSSClass() {
-		return (String) data.get("link_flair_css_class");
+		return getString("link_flair_css_class", true);
 	}
 	
 	public String linkFlairText() {
-		return (String) data.get("link_flair_text");
+		return getString("link_flair_text", true);
 	}
 	
 	public JSONObject media() {
@@ -55,54 +55,54 @@ public class Link extends VotableAndCreated {
 	}
 	
 	public int numComments() {
-		return ((Long) data.get("num_comments")).intValue();
+		return getInt("num_comments", true);
 	}
 	
 	public boolean over18() {
-		return (Boolean) data.get("over18");
+		return getBoolean("over18", true);
 	}
 	
 	public String permalink() {
-		return (String) data.get("permalink");
+		return getString("permalink", true);
 	}
 	
 	/**
 	 * @return true if the user is logged in and has saved this post, false otherwise
 	 */
 	public boolean saved() {
-		return (Boolean) data.get("saved");
+		return getBoolean("saved", true);
 	}
 	
 	public int score() {
-		return ((Long) data.get("score")).intValue();
+		return getInt("score", true);
 	}
 	
 	public String selftext() {
-		return (String) data.get("selftext");
+		return getString("selftext", true);
 	}
 	
 	public String selftextHTML() {
-		return (String) data.get("selftext_html");
+		return getString("selftext_html", true);
 	}
 	
 	public String subreddit() {
-		return (String) data.get("subreddit");
+		return getString("subreddit", true);
 	}
 	
 	public String subredditID() {
-		return (String) data.get("subreddit_id");
+		return getString("subreddit_id", true);
 	}
 	
 	public String thumbnail() {
-		return (String) data.get("thumbnail");
+		return getString("thumnail", true);
 	}
 	
 	public String title() {
-		return (String) data.get("title");
+		return getString("title", true);
 	}
 	
 	public String url() {
-		return (String) data.get("url");
+		return getString("url", true);
 	}
 	
 	public boolean edited() {
@@ -134,11 +134,11 @@ public class Link extends VotableAndCreated {
 	 * @return if this post is distinguished
 	 */
 	public String distinguished() {
-		return (String) data.get("distinguished");
+		return getString("distinguished", true);
 	}
 	
 	public boolean stickied() {
-		return (Boolean) data.get("stickied");
+		return getBoolean("stickied", true);
 	}
 	
 	// here on out are not documented on the JSON page, so might not always be there
@@ -151,14 +151,14 @@ public class Link extends VotableAndCreated {
 	 * @return the moderator who banned this submission. Normally null
 	 */
 	public String bannedBy() {
-		return (String) data.get("banned_by");
+		return getString("banned_by", true);
 	}
 	
 	/**
 	 * @return the moderator who approved this submission
 	 */
 	public String approvedBy() {
-		return (String) data.get("approved_by");
+		return getString("approved_by", true);
 	}
 
 	@Override

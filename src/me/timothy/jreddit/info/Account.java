@@ -9,56 +9,56 @@ public class Account extends Thing implements Created {
 	}
 
 	public int commentKarma() {
-		return ((Long) data.get("comment_karma")).intValue();
+		return getInt("comment_karma", true);
 	}
 
 	public boolean hasMail() {
-		return (boolean) data.get("has_mail");
+		return getBoolean("has_mail", true);
 	}
 	
 	public boolean hasModMail() {
-		return (boolean) data.get("has_mod_mail");
+		return getBoolean("has_mod_mail", true);
 	}
 	
 	public boolean hasVerifiedEmail() {
-		return (boolean) data.get("has_verified_email");
+		return getBoolean("has_verified_email", true);
 	}
 	
 	public String id() {
-		return (String) data.get("id");
+		return getString("id", true);
 	}
 
 	public boolean isFriend() {
-		return (boolean) data.get("is_friend");
+		return getBoolean("is_friend", true);
 	}
 	
 	public boolean isGold() {
-		return (boolean) data.get("is_gold");
+		return getBoolean("is_gold", true);
 	}
 	
 	public int linkKarma() {
-		return ((Long) data.get("link_karma")).intValue();
+		return getInt("link_karma", true);
 	}
 	
 	public String modhash() {
-		return (String) data.get("modhash");
+		return getString("modhash", true);
 	}
 	
 	public String name() {
-		return (String) data.get("name");
+		return getString("name", true);
 	}
 	
 	public boolean over18() {
-		return (boolean) data.get("over18");
+		return getBoolean("over18", true);
 	}
 	@Override
 	public double created() {
-		return (double) data.get("created");
+		return getDouble("created", true);
 	}
 
 	@Override
 	public double createdUTC() {
-		return (double) data.get("created_utc");
+		return getDouble("created_utc", true);
 	}
 
 	@Override

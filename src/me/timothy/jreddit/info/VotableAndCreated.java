@@ -11,12 +11,12 @@ public abstract class VotableAndCreated extends Thing implements Votable, Create
 
 	@Override
 	public int ups() {
-		return ((Long) data.get("ups")).intValue();
+		return getInt("ups", true);
 	}
 
 	@Override
 	public int downs() {
-		return ((Long) data.get("downs")).intValue();
+		return getInt("downs", true);
 	}
 
 	@Override
@@ -26,11 +26,11 @@ public abstract class VotableAndCreated extends Thing implements Votable, Create
 
 	@Override
 	public double created() {
-		return (double) data.get("created");
+		return getDouble("created", true);
 	}
 
 	@Override
 	public double createdUTC() {
-		return (double) data.get("created_utc");
+		return getDouble("created_utc", true);
 	}
 }

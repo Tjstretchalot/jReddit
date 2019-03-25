@@ -10,27 +10,27 @@ public class Subreddit extends Thing {
 	}
 
 	public int accountsActive() {
-		return ((Long) data.get("accounts_active")).intValue();
+		return getInt("accounts_active", true);
 	}
 	
 	public int commentScoreHideMins() {
-		return ((Long) data.get("comment_score_hide_mins")).intValue();
+		return getInt("comment_score_hide_mins", true);
 	}
 	
 	public String description() {
-		return (String) data.get("description");
+		return getString("description", true);
 	}
 	
 	public String descriptionHTML() {
-		return (String) data.get("description_html");
+		return getString("description_html", true);
 	}
 	
 	public String displayName() {
-		return (String) data.get("display_name");
+		return getString("display_name", true);
 	}
 	
 	public String headerImage() {
-		return (String) data.get("header_img");
+		return getString("header_img", true);
 	}
 	
 	public boolean hasHeaderSize() {
@@ -46,66 +46,66 @@ public class Subreddit extends Thing {
 	}
 	
 	public String headerTitle() {
-		return (String) data.get("header_title");
+		return getString("header_title", true);
 	}
 	
 	public boolean over18() {
-		return (boolean) data.get("over18");
+		return getBoolean("over18", true);
 	}
 	
 	public String publicDescription() {
-		return (String) data.get("public_description");
+		return getString("public_description", true);
 	}
 	
 	public boolean publicTraffic() {
-		return (boolean) data.get("public_traffic");
+		return getBoolean("public_traffic", true);
 	}
 	
 	public long subscribers() {
-		return (long) data.get("subscribers");
+		return getLong("subscribers", true);
 	}
 	
 	/**
 	 * @return 'any', 'link', or 'self'
 	 */
 	public String submissionType() {
-		return (String) data.get("submissionType");
+		return getString("submissionType", true);
 	}
 	
 	public String submitLinkLabel() {
-		return (String) data.get("submit_link_label");
+		return getString("submit_link_label", true);
 	}
 	
 	public String submitTextLabel() {
-		return (String) data.get("submit_text_label");
+		return getString("submit_text_label", true);
 	}
 	
 	public String subredditType() {
-		return (String) data.get("subreddit_type");
+		return getString("subreddit_type", true);
 	}
 	
 	public String title() {
-		return (String) data.get("title");
+		return getString("title", true);
 	}
 	
 	public String url() {
-		return (String) data.get("url");
+		return getString("url", true);
 	}
 	
 	public boolean userIsBanned() {
-		return (boolean) data.get("user_is_banned");
+		return getBoolean("user_is_banned", true);
 	}
 	
 	public boolean userIsContributor() {
-		return (boolean) data.get("user_is_contributor");
+		return getBoolean("user_is_contributor", true);
 	}
 	
 	public boolean userIsModerator() {
-		return (boolean) data.get("user_is_moderator");
+		return getBoolean("user_is_moderator", true);
 	}
 	
 	public boolean userIsSubscriber() {
-		return (boolean) data.get("user_is_subscriber");
+		return getBoolean("user_is_subscriber", true);
 	}
 
 	@Override

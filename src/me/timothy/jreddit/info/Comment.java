@@ -8,31 +8,31 @@ public class Comment extends VotableAndCreated {
 	}
 
 	public String approvedBy() {
-		return (String) data.get("approved_by");
+		return getString("approved_by", true);
 	}
 	
 	public String author() {
-		return (String) data.get("author");
+		return getString("author", true);
 	}
 	
 	public String authorFlairCSSClass() {
-		return (String) data.get("author_flair_css_class");
+		return getString("author_flair_css_class", true);
 	}
 	
 	public String authorFlairText() {
-		return (String) data.get("author_flair_text");
+		return getString("author_flair_text", true);
 	}
 	
 	public String bannedBy() {
-		return (String) data.get("banned_by");
+		return getString("banned_by", true);
 	}
 	
 	public String body() {
-		return ((String) data.get("body")).replaceAll("[\\s\\u0085\\p{Z}]", " ");
+		return getString("body", true).replaceAll("[\\s\\u0085\\p{Z}]", " ");
 	}
 	
 	public String bodyHTML() {
-		return (String) data.get("body_html");
+		return getString("body_html", true);
 	}
 	
 	public boolean edited() {
@@ -47,23 +47,23 @@ public class Comment extends VotableAndCreated {
 	 * @return number of times this has been gifted gold
 	 */
 	public int gilded() {
-		return ((Long) data.get("gilded")).intValue();
+		return getInt("gilded", true);
 	}
 	
 	public Boolean likes() {
-		return (Boolean) data.get("likes"); 
+		return getBoolean("likes", true); 
 	}
 	
 	public String linkID() {
-		return (String) data.get("link_id");
+		return getString("link_id", true);
 	}
 	
 	public String linkTitle() {
-		return (String) data.get("link_title");
+		return getString("link_title", true);
 	}
 	
 	public String linkURL() {
-		return (String) data.get("link_url");
+		return getString("link_url", true);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -72,7 +72,7 @@ public class Comment extends VotableAndCreated {
 	}
 	
 	public String linkAuthor() {
-		return (String) data.get("link_author");
+		return getString("link_author", true);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -85,27 +85,27 @@ public class Comment extends VotableAndCreated {
 	}
 	
 	public String parentId() {
-		return (String) data.get("parent_id");
+		return getString("parent_id", true);
 	}
 	
 	public boolean scoreHidden() {
-		return (boolean) data.get("score_hidden");
+		return getBoolean("score_hidden", true);
 	}
 	
 	public String subreddit() {
-		return (String) data.get("subreddit");
+		return getString("subreddit", true);
 	}
 	
 	public String permalink() {
-		return (String) data.get("permalink");
+		return getString("permalink", true);
 	}
 	
 	public String subredditId() {
-		return (String) data.get("subreddit_id");
+		return getString("subreddit_id", true);
 	}
 	
 	public String distinguished() {
-		return (String) data.get("distinguished");
+		return getString("distinguished", true);
 	}
 
 	public Object getReplies() {

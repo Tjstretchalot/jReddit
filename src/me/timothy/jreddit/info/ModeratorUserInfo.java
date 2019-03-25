@@ -25,7 +25,7 @@ public class ModeratorUserInfo extends Thing {
 		if(!object.containsKey("author_flair_css_class"))
 			return null;
 		
-		return (String) object.get("author_flair_css_class");
+		return getString("author_flair_css_class");
 	}
 	
 	/**
@@ -36,7 +36,7 @@ public class ModeratorUserInfo extends Thing {
 		if(!object.containsKey("author_flair_text"))
 			return null;
 		
-		return (String) object.get("author_flair_text");
+		return getString("author_flair_text");
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class ModeratorUserInfo extends Thing {
 	 * @return time moderator was added
 	 */
 	public long date() {
-		return ((Number) object.get("date")).longValue();
+		return getLong("date");
 	}
 	
 	/**
@@ -78,7 +78,7 @@ public class ModeratorUserInfo extends Thing {
 	 * @return moderators name
 	 */
 	public String name() {
-		return (String) object.get("name");
+		return getString("name");
 	}
 	
 	/**
@@ -86,7 +86,7 @@ public class ModeratorUserInfo extends Thing {
 	 */
 	@Override
 	public String id() {
-		return ((String) object.get("id")).substring(3);
+		return getString("id").substring(3);
 	}
 	
 	/**
@@ -94,7 +94,7 @@ public class ModeratorUserInfo extends Thing {
 	 */
 	@Override
 	public String fullname() {
-		return (String) object.get("id");
+		return getString("id");
 	}
 
 }

@@ -18,7 +18,7 @@ public class BannedUserInfo extends Thing {
 	 * @return the date the user was banned
 	 */
 	public long date() {
-		return ((Number) object.get("date")).longValue();
+		return getLong("date");
 	}
 	
 	/**
@@ -28,7 +28,7 @@ public class BannedUserInfo extends Thing {
 	 * @return the note
 	 */
 	public String note() {
-		return (String) object.get("note");
+		return getString("note");
 	}
 	
 	/**
@@ -37,7 +37,7 @@ public class BannedUserInfo extends Thing {
 	 * @return the banned username
 	 */
 	public String name() {
-		return (String) object.get("name");
+		return getString("name");
 	}
 	
 	/**
@@ -49,7 +49,7 @@ public class BannedUserInfo extends Thing {
 	 */
 	@Override
 	public String id() {
-		return ((String) object.get("id")).substring(3);
+		return getString("id").substring(3);
 	}
 
 	/**
@@ -57,6 +57,6 @@ public class BannedUserInfo extends Thing {
 	 */
 	@Override
 	public String fullname() {
-		return (String) object.get("id");
+		return getString("id");
 	}
 }
