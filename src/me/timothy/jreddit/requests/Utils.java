@@ -7,11 +7,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -226,8 +231,8 @@ public class Utils {
 		}
 		return false;
 	}
-
-	public static void handleRateLimit(JSONArray errors) {
+	
+	public static Timestamp getRatelimitedUntil(JSONArray errors) {
 		String errorMsg = null;
 		for(int i = 0; i < errors.size(); i++) {
 			JSONArray error = (JSONArray) errors.get(i);
@@ -241,12 +246,25 @@ public class Utils {
 		
 		int multiplier = errorMsg.contains("minute") ? 60 : 1;
 		long slTime = ((Integer.valueOf(timeRem) + 1) * multiplier) * 1000;
+		return new Timestamp(System.currentTimeMillis() + slTime);
+	}
+
+	public static void handleRateLimit(JSONArray errors) {
+		long slTime = getRatelimitedUntil(errors).getTime() - System.currentTimeMillis();
 		try {
 //			RedditAPI.log.info("  Necessary sleep time: " + (slTime / 1000) + " seconds");
 			Thread.sleep(slTime);
 		} catch (NumberFormatException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public static int getResponseCode(IOException e) {
+		Matcher exMsgStatusCodeMatcher = Pattern.compile("^Server returned HTTP response code: (\\d+)").matcher(e.getMessage());
+		if(exMsgStatusCodeMatcher.find()) {
+			return Integer.valueOf(exMsgStatusCodeMatcher.group(1));
+		}
+		return -1;
 	}
 
 	public static String toParams(Map<String, String> arguments) {
@@ -272,5 +290,55 @@ public class Utils {
     	String authStr = username + ":" + password;
     	String authEnc = Base64Coder.encodeString(authStr);
     	connection.setRequestProperty("Authorization", "Basic " + authEnc);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static List<?> parseJqueryErrors(JSONObject result) {
+		if(result.containsKey("jquery")) {
+			JSONArray errors = new JSONArray(); // we use a json array for compatibility with the ratelimit response
+			JSONArray jquery = (JSONArray)result.get("jquery");
+			
+			Stack<JSONArray> stack = new Stack<>();
+			stack.push(jquery);
+			
+			while(!stack.isEmpty()) {
+				JSONArray arr = stack.pop();
+				
+				for(Object o : arr) {
+					if(o instanceof String) {
+						String s = (String) o;
+						if(s.contains(".error")) {
+							errors.add(arr);
+							break;
+						}
+					}else if(o instanceof JSONArray) {
+						stack.push((JSONArray) o);
+					}
+				}
+			}
+			
+			if(errors.size() > 0) {
+				return errors;
+			}
+		}
+		
+		return null;
+	}
+
+	public static boolean isNonexistentUser(JSONArray errors) {
+		for(Object o : errors) {
+			if(o instanceof JSONArray) {
+				JSONArray arr = (JSONArray) o;
+				for(Object o2 : arr) {
+					if(o2 instanceof String) {
+						String asStr = (String) o2;
+						if(asStr.contains("USER_DOESNT_EXIST")) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 }

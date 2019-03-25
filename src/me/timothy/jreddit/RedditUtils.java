@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -21,9 +22,11 @@ import me.timothy.jreddit.info.LoginResponse;
 import me.timothy.jreddit.info.ModeratorListing;
 import me.timothy.jreddit.info.More;
 import me.timothy.jreddit.info.Thing;
+import me.timothy.jreddit.info.Wikipage;
 import me.timothy.jreddit.requests.Request;
 import me.timothy.jreddit.requests.RequestHandler;
 import me.timothy.jreddit.requests.RequestShell;
+import me.timothy.jreddit.requests.Utils;
 
 public class RedditUtils {
 	public static final RequestHandler requestHandler;
@@ -204,29 +207,49 @@ public class RedditUtils {
 		
 		return new CommentResponse((JSONObject) req.doRequest(user));
 	}
-
-
-	public static Errorable sendPersonalMessage(User user, String to, String title, String message) throws IOException, ParseException {
+	
+	public static Errorable sendPersonalMessage(User user, String to, String title, String message, String from) throws IOException, ParseException {
+		List<String> params = new ArrayList<>();
+		params.add("subject="+URLEncoder.encode(title, "UTF-8"));
+		params.add("text="+URLEncoder.encode(message, "UTF-8"));
+		params.add("to="+URLEncoder.encode(to, "UTF-8"));
+		if(from != null) {
+			params.add("from_sr=" + URLEncoder.encode(from, "UTF-8"));
+		}
 		Request req = requestHandler.getShell("compose").createRequest(
 				user.getLoginResponse(),
-				"subject="+URLEncoder.encode(title, "UTF-8"),
-				"text="+URLEncoder.encode(message, "UTF-8"),
-				"to="+URLEncoder.encode(to, "UTF-8")
+				params.toArray(new String[0])
 				);
 		
 		final JSONObject result = (JSONObject) req.doRequest(user);
 		
+		// this endpoint is a nightmare
 		return new Errorable() {
 
 			@Override
 			public List<?> getErrors() {
 				JSONObject json = (JSONObject) result.get("json");
-				if(json == null) return null;
+				if(json == null) {
+					if(result.containsKey("success")) {
+						if(((Boolean)result.get("success")).booleanValue()) {
+							return null;
+						}
+						
+						List<?> jqueryErrors = Utils.parseJqueryErrors(result);
+						if(jqueryErrors != null)
+							return jqueryErrors;
+						return Arrays.asList("success is false!", json);
+					}
+				}
 				
 				return (JSONArray) json.get("errors");
 			}
 			
 		};
+	}
+
+	public static Errorable sendPersonalMessage(User user, String to, String title, String message) throws IOException, ParseException {
+		return sendPersonalMessage(user, to, title, message, null);
 	}
 	
 	public static Errorable edit(User user, String thingFullname, String text) throws IOException, ParseException {
@@ -701,6 +724,65 @@ public class RedditUtils {
 		}
 		
 		return true;
+	}
+	
+	
+	/**
+	 * Fetch the wikipage by the given name for the given subreddit. 
+	 * @param subreddit the subreddit whose wiki you want to access
+	 * @param page the page you want
+	 * @return the wikipage
+	 * @throws IllegalArgumentException if subreddit or page is null
+	 * @throws IOException if one occurs
+	 * @throws ParseException if the response is not valid json
+	 */
+	public static Wikipage getWikipage(String subreddit, String page, User user) throws IOException, ParseException {
+		if(subreddit == null)
+			throw new IllegalArgumentException("subreddit cannot be null!");
+		if(page == null)
+			throw new IllegalArgumentException("page cannot be null!");
+		
+		RequestShell shell = requestHandler.getShell("subreddit_wiki");
+		Request req = shell.createRequest(user.getLoginResponse());
+		
+		JSONObject result = (JSONObject) req.doRequest(user, "sub=" + subreddit, "page=" + page);
+		
+		return new Wikipage(result);
+	}
+	
+	/**
+	 * Fetches the revisions, from newest to oldest, for the given wikipage. The resulting listing is malformed
+	 * since there is no "kind" object to tell us what we are looking at, so you are forced to parse it manually.
+	 * The fields you probably want on each thing are:
+	 * <ul>
+	 *   <li>timestamp - Number (seconds since epoch)</li>
+	 *   <li>reason - string or null</li>
+	 *   <li>author - Account</li>
+	 *   <li>page - the page being edited (this is always whats passed?)</li>
+	 *   <li>id - a unique identifier for the revision (ex: 64518658-4da6-11e9-8391-0e790d509198)</li>
+	 * </ul>
+	 *  
+	 * @param subreddit the subreddit whose revisions you want
+	 * @param page the page you want the revisions history of
+	 * @param limit the maximum number of results
+	 * @param user the user for authenticating
+	 * @return the most recent revisions metadata for the given page
+	 * @throws IllegalArgumentException if subreddit or page are null
+	 * @throws IOException if one occurs
+	 * @throws ParseException if the response is not valid json
+	 */
+	public static Listing getWikiRevisions(String subreddit, String page, int limit, User user) throws IOException, ParseException {
+		if(subreddit == null)
+			throw new IllegalArgumentException("subreddit cannot be null!");
+		if(page == null)
+			throw new IllegalArgumentException("page cannot be null!");
+		
+		RequestShell shell = requestHandler.getShell("subreddit_wiki_revisions");
+		Request req = shell.createRequest(user.getLoginResponse(), "limit=" + limit);
+
+		JSONObject result = (JSONObject) req.doRequest(user, "sub=" + subreddit, "page=" + page);
+		
+		return new Listing(result);
 	}
 	
 	/**
